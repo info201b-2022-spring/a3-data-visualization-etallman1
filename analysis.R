@@ -1,5 +1,9 @@
 library(dplyr)
 library(tidyr)
+library(rworldmap) 
+library(RColorBrewer)
+library(ggplot2)
+library(stringr)
 
 inc_trends <- read.csv("incarceration_trends.csv")
 
@@ -13,7 +17,7 @@ na_count <- function(the_year){
     View()
 }
 
-na_count(2018)
+#na_count(1998)
 
 #Handy info----------------------------------------------------------
 
@@ -29,52 +33,107 @@ state_reg <- select(inc_trends, state, region) %>%
 #Cleaning--------------------------------------------------------------
 
 
-filtered_1990_to_2018 <- inc_trends %>%
-  filter(year == 1990 | year == 1991 | year == 1992 | 
-           year == 1993 | year == 1994 | year == 1995 | year == 1996 | 
-           year == 1997 | year == 1998 | year == 1999 | year == 2000 | 
+filtered_1998_to_2018 <- inc_trends %>%
+  filter(year == 1998 | year == 1999 | year == 2000 | 
            year == 2001 | year == 2002 | year == 2003 | year == 2004 | year == 2005 |
            year == 2006 | year == 2007 | year == 2008 | year == 2009  | year == 2010 | 
            year == 2011 | year == 2012 | year == 2013 | year == 2014 | year == 2015 | 
            year == 2016 | year == 2017 | year == 2018) %>%
-  select(year, state, county_name, region, urbanicity, division, total_pop_15to64,
-         aapi_pop_15to64, black_pop_15to64, latinx_pop_15to64, 
-         native_pop_15to64, white_pop_15to64
+  select(year, state, county_name, region, urbanicity, division, total_jail_pop_rate,
+         aapi_jail_pop_rate, black_jail_pop_rate, latinx_jail_pop_rate, 
+         native_jail_pop_rate, white_jail_pop_rate
   ) 
   
-year_avg <- filtered_1990_to_2018 %>%
+year_avg <- filtered_1998_to_2018 %>%
   group_by(year) %>%
-  summarise(total_mean = mean(total_pop_15to64), aapi_mean = mean(aapi_pop_15to64), 
-            black_mean = mean(black_pop_15to64), latino_mean = mean(latinx_pop_15to64), 
-            native_mean = mean(native_pop_15to64), white_mean = mean(white_pop_15to64))
+summarise(total_mean = mean(total_jail_pop_rate, na.rm = TRUE), 
+          aapi_mean = mean(aapi_jail_pop_rate, na.rm = TRUE), 
+            black_mean = mean(black_jail_pop_rate, na.rm = TRUE), 
+          latino_mean = mean(latinx_jail_pop_rate, na.rm = TRUE), 
+            native_mean = mean(native_jail_pop_rate, na.rm = TRUE), 
+          white_mean = mean(white_jail_pop_rate, na.rm = TRUE))
 
 year_avg_simplified <- year_avg %>%
   select(-white_mean, -year, -total_mean)  
 year_avg_simplified <- mutate(year_avg_simplified, non_white_mean_total = 
                                 rowSums(year_avg_simplified)) %>%
   select(non_white_mean_total) 
-year_avg_simplified <-  merge(year_avg, year_avg_simplified)
-
-
-
+year_avg_simplified <-  cbind(year_avg, year_avg_simplified) %>%
+  select(year, total_mean, white_mean, non_white_mean_total) %>%
+  rename(total_population = total_mean, white = white_mean, non_white = non_white_mean_total) %>%
   gather(
     key = "race",
-    value = "population",
+    value = "mean_rate",
     -year
   ) 
   
 
-state_avg <- filtered_1990_to_2018 %>%
+state_avg <- filtered_1998_to_2018 %>%
   group_by(state) %>%
-  summarise(total_mean = mean(total_pop_15to64), aapi_mean = mean(aapi_pop_15to64), 
-            black_mean = mean(black_pop_15to64), latino_mean = mean(latinx_pop_15to64), 
-            native_mean = mean(native_pop_15to64), white_mean = mean(white_pop_15to64))
+  summarise(total_mean = mean(total_jail_pop_rate, na.rm = TRUE), 
+            aapi_mean = mean(aapi_jail_pop_rate, na.rm = TRUE), 
+            black_mean = mean(black_jail_pop_rate, na.rm = TRUE), 
+            latino_mean = mean(latinx_jail_pop_rate, na.rm = TRUE), 
+            native_mean = mean(native_jail_pop_rate, na.rm = TRUE), 
+            white_mean = mean(white_jail_pop_rate, na.rm = TRUE))
+state_avg_simplified <- state_avg %>%
+  select(-white_mean, -state, -total_mean)  
+state_avg_simplified <- mutate(state_avg_simplified, non_white_mean_total = 
+                                  rowSums(state_avg_simplified)) %>%
+  select(non_white_mean_total) 
+state_avg_simplified <-  cbind(state_avg, state_avg_simplified) %>%
+  select(state, non_white_mean_total) %>%
+  na.omit()
 
-region_avg <- filtered_1990_to_2018 %>%
+
+region_avg <- filtered_1998_to_2018 %>%
   group_by(region) %>%
-  summarise(total_mean = mean(total_pop_15to64), aapi_mean = mean(aapi_pop_15to64), 
-            black_mean = mean(black_pop_15to64), latino_mean = mean(latinx_pop_15to64), 
-            native_mean = mean(native_pop_15to64), white_mean = mean(white_pop_15to64))
+  summarise(total_mean = mean(total_jail_pop_rate, na.rm = TRUE), 
+            aapi_mean = mean(aapi_jail_pop_rate, na.rm = TRUE), 
+            black_mean = mean(black_jail_pop_rate, na.rm = TRUE), 
+            latino_mean = mean(latinx_jail_pop_rate, na.rm = TRUE), 
+            native_mean = mean(native_jail_pop_rate, na.rm = TRUE), 
+            white_mean = mean(white_jail_pop_rate, na.rm = TRUE))
+
+region_avg_simplified <- region_avg %>%
+  select(-white_mean, -region, -total_mean)  
+region_avg_simplified <- mutate(region_avg_simplified, non_white_mean_total = 
+                                rowSums(region_avg_simplified)) %>%
+  select(non_white_mean_total) 
+region_avg_simplified <-  cbind(region_avg, region_avg_simplified) %>%
+  select(region, total_mean, white_mean, non_white_mean_total) %>%
+  rename(total_population = total_mean, white = white_mean, non_white = non_white_mean_total) %>%
+  gather(
+    key = "race",
+    value = "mean_rate",
+    -region
+  ) 
+
+region_2018_avg <- filtered_1998_to_2018 %>%
+  filter(year == 2018) %>%
+  group_by(region) %>%
+  summarise(total_mean = mean(total_jail_pop_rate, na.rm = TRUE), 
+            aapi_mean = mean(aapi_jail_pop_rate, na.rm = TRUE), 
+            black_mean = mean(black_jail_pop_rate, na.rm = TRUE), 
+            latino_mean = mean(latinx_jail_pop_rate, na.rm = TRUE), 
+            native_mean = mean(native_jail_pop_rate, na.rm = TRUE), 
+            white_mean = mean(white_jail_pop_rate, na.rm = TRUE))
+
+region_2018_avg_simplified <- region_2018_avg %>%
+select(-white_mean, -region, -total_mean) 
+region_2018_avg_simplified <- mutate(region_2018_avg_simplified, non_white_mean_total = 
+                                  rowSums(region_2018_avg_simplified)) %>%
+  select(non_white_mean_total) 
+region_2018_avg_simplified <-  cbind(region_2018_avg, region_2018_avg_simplified) %>%
+  select(region, total_mean, white_mean, non_white_mean_total) %>%
+  rename(total_population = total_mean, white = white_mean, non_white = non_white_mean_total) %>%
+  gather(
+    key = "race",
+    value = "mean_rate",
+    -region
+  ) 
+
+race_only_region_2018 <- slice(region_2018_avg_simplified, 5:12)
 
 
 
@@ -215,8 +274,7 @@ combined_dfs <- rbind(a2006_df, a2011_df) %>%
 #  distinct() %>%
 #  mutate(region_n_year = paste(combined_dfs$region, combined_dfs$year))
 
-library(rworldmap) 
-library(RColorBrewer)
+
 
 
 

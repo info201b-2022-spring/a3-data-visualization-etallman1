@@ -10,27 +10,6 @@ library("ggplot2")
 library("tidyr")
 library("dplyr")
 
-avg_sum_year <- combined_dfs %>%    
-  group_by(year) %>%
-  summarise(white = mean(white_prison_pop_rate), non_white = mean(non_white_pop_rate_total))%>%
-  round()
-
-
-gathered <- avg_sum_year %>%
-  gather(
-    key = "race",
-    value = "population_rate",
-    -year
-  )
-
-gathered2 <- combined_dfs %>%
-  group_by(region) %>%
-  summarise(white = mean(white_prison_pop_rate), non_white = mean(non_white_pop_rate_total), all_population = mean(total_prison_pop_rate)) %>%
-  gather(
-    key = "race",
-    value = "population_rate",
-    -region
-  )
 
 ```
 
@@ -45,16 +24,109 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 You can also embed plots, for example:
 
+```{r time plot, echo=false}
+ggplot(year_avg_simplified, aes(x = year, y = mean_rate, color = race)) +
+  geom_line()
+```
+
 ```{r bar graphs, echo=FALSE}
-ggplot(gathered2, aes(fill=race, y=population_rate, x=region)) +
+ggplot(race_only_region_2018, aes(fill=race, y=mean_rate, x=region)) +
   geom_col(position="dodge")
-#ggplot(data = avg_sum, mapping = aes(
-#  x = year, y = white)) +
-#  geom_col() 
-  #geom_line(mapping = aes(y = total_prison_pop_rate))
-  #geom_col(mapping  = aes(y = white_prison_pop_rate))
-  #geom_point(mapping = aes(y = white_prison_pop_rate))
-  #geom_line(mapping = aes(y = white_prison_pop_rate))
+```
+```{r us map, echo=FALSE}
+us_map <- map_data("state") %>%
+  rename(state = region) %>%
+  distinct()
+
+us_map$state <- str_replace_all(us_map$state, "alabama", "AL")
+us_map$state <- str_replace_all(us_map$state, "alaska", "AK")
+us_map$state <- str_replace_all(us_map$state, "arkansas", "AR")
+us_map$state <- str_replace_all(us_map$state, "arizona", "AZ")
+us_map$state <- str_replace_all(us_map$state, "california", "CA")
+us_map$state <- str_replace_all(us_map$state, "colorado", "CO")
+us_map$state <- str_replace_all(us_map$state, "florida", "FL")
+us_map$state <- str_replace_all(us_map$state, "georgia", "GA")
+us_map$state <- str_replace_all(us_map$state, "district of columbia", "DC")
+us_map$state <- str_replace_all(us_map$state, "iowa", "IA")
+us_map$state <- str_replace_all(us_map$state, "idaho", "ID")
+us_map$state <- str_replace_all(us_map$state, "illinois", "IL")
+us_map$state <- str_replace_all(us_map$state, "indiana", "IN")
+us_map$state <- str_replace_all(us_map$state, "kansas", "KS")
+us_map$state <- str_replace_all(us_map$state, "kentucky", "KY")
+us_map$state <- str_replace_all(us_map$state, "louisiana", "LA")
+us_map$state <- str_replace_all(us_map$state, "massachusetts", "MA")
+us_map$state <- str_replace_all(us_map$state, "maryland", "MD")
+us_map$state <- str_replace_all(us_map$state, "maine", "ME")
+us_map$state <- str_replace_all(us_map$state, "michigan", "MI")
+us_map$state <- str_replace_all(us_map$state, "minnesota", "MN")
+us_map$state <- str_replace_all(us_map$state, "missouri", "MO")
+us_map$state <- str_replace_all(us_map$state, "mississippi", "MS")
+us_map$state <- str_replace_all(us_map$state, "montana", "MT")
+us_map$state <- str_replace_all(us_map$state, "north carolina", "NC")
+us_map$state <- str_replace_all(us_map$state, "north dakota", "ND")
+us_map$state <- str_replace_all(us_map$state, "nebraska", "NE")
+us_map$state <- str_replace_all(us_map$state, "new hampshire", "NH")
+us_map$state <- str_replace_all(us_map$state, "new jersey", "NJ")
+us_map$state <- str_replace_all(us_map$state, "new mexico", "NM")
+us_map$state <- str_replace_all(us_map$state, "nevada", "NV")
+us_map$state <- str_replace_all(us_map$state, "new york", "NY")
+us_map$state <- str_replace_all(us_map$state, "ohio", "OH")
+us_map$state <- str_replace_all(us_map$state, "oklahoma", "OK")
+us_map$state <- str_replace_all(us_map$state, "oregon", "OR")
+us_map$state <- str_replace_all(us_map$state, "pennsylvania", "PA")
+us_map$state <- str_replace_all(us_map$state, "south carolina", "SC")
+us_map$state <- str_replace_all(us_map$state, "south dakota", "SD")
+us_map$state <- str_replace_all(us_map$state, "tennessee", "TN")
+us_map$state <- str_replace_all(us_map$state, "texas", "TX")
+us_map$state <- str_replace_all(us_map$state, "utah", "UT")
+us_map$state <- str_replace_all(us_map$state, "virginia", "VA")
+us_map$state <- str_replace_all(us_map$state, "washington", "WA")
+us_map$state <- str_replace_all(us_map$state, "wisconsin", "WI")
+us_map$state <- str_replace_all(us_map$state, "west virginia", "WV")
+us_map$state <- str_replace_all(us_map$state, "wyoming", "WY")
+us_map$state <- str_replace_all(us_map$state, "connecticut", "CT")
+
+us_map$state <- str_replace_all(us_map$state, "delaware", "DE")
+
+us_map$state <- str_replace_all(us_map$state, "rhode island", "RI")
+
+us_map$state <- str_replace_all(us_map$state, "vermont", "AL")
+
+us_map$state <- str_replace_all(us_map$state, "west VA", "WV")
+
+
+
+  
+states <- us_map %>%
+  group_by(state) %>%
+  summarise() 
+
+right_join(state_avg_simplified, by="state")
+
+blank_theme <- theme_bw() +
+  theme(
+    axis.line = element_blank(),        # remove axis lines
+    axis.text = element_blank(),        # remove axis labels
+    axis.ticks = element_blank(),       # remove axis ticks
+    axis.title = element_blank(),       # remove axis titles
+    plot.background = element_blank(),  # remove gray background
+    panel.grid.major = element_blank(), # remove major grid lines
+    panel.grid.minor = element_blank(), # remove minor grid lines
+    panel.border = element_blank()      # remove border around plot
+  )
+
+ggplot(us_map) +
+   geom_polygon(
+    mapping = aes(x = long, y = lat, group = group, fill = non_white_pop_total),
+    color = "white", 
+    size = .3        
+  ) +
+  coord_map() +
+    scale_fill_continuous(low = "#132B43", high = "Red") +
+    labs(fill = "aaaa") +
+    blank_theme
+
+
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
