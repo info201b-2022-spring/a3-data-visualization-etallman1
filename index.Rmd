@@ -24,7 +24,7 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 You can also embed plots, for example:
 
-```{r time plot, echo=false}
+```{r time plot, echo=FALSE}
 ggplot(year_avg_simplified, aes(x = year, y = mean_rate, color = race)) +
   geom_line()
 ```
@@ -33,7 +33,7 @@ ggplot(year_avg_simplified, aes(x = year, y = mean_rate, color = race)) +
 ggplot(race_only_region_2018, aes(fill=race, y=mean_rate, x=region)) +
   geom_col(position="dodge")
 ```
-```{r us map, echo=FALSE}
+```{r fixing map, echo=FALSE}
 us_map <- map_data("state") %>%
   rename(state = region) %>%
   distinct()
@@ -85,23 +85,16 @@ us_map$state <- str_replace_all(us_map$state, "wisconsin", "WI")
 us_map$state <- str_replace_all(us_map$state, "west virginia", "WV")
 us_map$state <- str_replace_all(us_map$state, "wyoming", "WY")
 us_map$state <- str_replace_all(us_map$state, "connecticut", "CT")
-
 us_map$state <- str_replace_all(us_map$state, "delaware", "DE")
-
 us_map$state <- str_replace_all(us_map$state, "rhode island", "RI")
-
-us_map$state <- str_replace_all(us_map$state, "vermont", "AL")
-
+us_map$state <- str_replace_all(us_map$state, "vermont", "VT")
 us_map$state <- str_replace_all(us_map$state, "west VA", "WV")
 
+us_map <- right_join(us_map, state_avg_simplified, by="state")
 
+```
 
-  
-states <- us_map %>%
-  group_by(state) %>%
-  summarise() 
-
-right_join(state_avg_simplified, by="state")
+```{r us map, echo=FALSE}
 
 blank_theme <- theme_bw() +
   theme(
@@ -117,13 +110,13 @@ blank_theme <- theme_bw() +
 
 ggplot(us_map) +
    geom_polygon(
-    mapping = aes(x = long, y = lat, group = group, fill = non_white_pop_total),
+    mapping = aes(x = long, y = lat, group = group, fill = non_white_mean_total),
     color = "white", 
     size = .3        
   ) +
   coord_map() +
     scale_fill_continuous(low = "#132B43", high = "Red") +
-    labs(fill = "aaaa") +
+    labs(fill = "Rate", title = "Average Non-White Incarceration Rates by State (2018)") +
     blank_theme
 
 
