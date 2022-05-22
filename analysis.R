@@ -45,6 +45,7 @@ inc_2006 <- inc_trends %>%
 inc_2011 <- inc_trends %>%
   filter(year == 2011)
 
+
 race_2006_state_pop_rate <- inc_2006 %>%
   select(state, total_prison_pop_rate,
     aapi_prison_pop_rate,
@@ -160,8 +161,23 @@ combined_dfs <- rbind(a2006_df, a2011_df) %>%
 library(rworldmap) 
 library(RColorBrewer)
 
+na_count <- function(the_year){
+search <- inc_trends %>%
+  filter(year == the_year) %>%
+  select(state, total_prison_pop_rate,
+         aapi_prison_pop_rate,
+         black_prison_pop_rate,latinx_prison_pop_rate,
+         native_prison_pop_rate,white_prison_pop_rate,) %>%
+  group_by(state) %>%
+  summarise(total = mean(total_prison_pop_rate), aapi = mean(aapi_prison_pop_rate), 
+            black = mean(black_prison_pop_rate), latino = mean(latinx_prison_pop_rate), 
+            white = mean(white_prison_pop_rate))
+ rowSums(is.na(search)) %>%
+   sum() %>%
+  print()
+}
 
-
+na_count(2006)
 
 
 
