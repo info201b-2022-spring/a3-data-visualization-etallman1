@@ -107,6 +107,12 @@ race_2011_REGION_pop_rate <- race_2011_state_pop_rate %>%
 race_2011_REGION_pop_rate <- aggregate(
   . ~ region, race_2011_REGION_pop_rate, sum
 ) %>%
+  mutate(non_white_pop_rate_total = aapi_prison_pop_rate + black_prison_pop_rate + 
+           latinx_prison_pop_rate + native_prison_pop_rate) %>%
+  mutate(non_white_pop_rate_DIFF = 
+           non_white_pop_rate_total - total_prison_pop_rate) %>%
+  mutate(white_pop_rate_DIFF = 
+           white_prison_pop_rate - total_prison_pop_rate) %>%
   mutate_if(is.numeric, round)
 
 race_2016_REGION_pop_rate <- race_2016_state_pop_rate %>%
@@ -114,7 +120,52 @@ race_2016_REGION_pop_rate <- race_2016_state_pop_rate %>%
 race_2016_REGION_pop_rate <- aggregate(
   . ~ region, race_2016_REGION_pop_rate, sum
 ) %>%
+  mutate(non_white_pop_rate_total = aapi_prison_pop_rate + black_prison_pop_rate + 
+           latinx_prison_pop_rate + native_prison_pop_rate) %>%
+  mutate(non_white_pop_rate_DIFF = 
+           non_white_pop_rate_total - total_prison_pop_rate) %>%
+  mutate(white_pop_rate_DIFF = 
+           white_prison_pop_rate - total_prison_pop_rate) %>%
   mutate_if(is.numeric, round)
+
+region_pop_rate_data <- list()
+region_pop_rate_data$rates_2006 <- race_2006_REGION_pop_rate
+region_pop_rate_data$rates_2011 <- race_2011_REGION_pop_rate
+region_pop_rate_data$rates_2016 <- race_2016_REGION_pop_rate
+
+a2006_df <- race_2006_REGION_pop_rate %>%
+  mutate(year = 2006) %>%
+  mutate(region_n_year = paste(a2006_df$region, a2006_df$year))
+
+a2011_df <- race_2011_REGION_pop_rate %>%
+  mutate(year = 2011)%>%
+  mutate(region_n_year = paste(a2011_df$region, a2011_df$year))
+
+a2016_df <- race_2016_REGION_pop_rate %>%
+  mutate(year = 2016)%>%
+  mutate(region_n_year = paste(a2016_df$region, a2016_df$year))
+
+combined_dfs <- rbind(a2006_df, a2011_df) %>%
+  distinct() %>%
+  rbind(combined_dfs, a2016_df) %>%
+  distinct()
+
+#combined_dfs <- mutate(race_2006_REGION_pop_rate, year = 2006) %>%
+ # rbind(combined_dfs, mutate(race_2011_REGION_pop_rate, year = 2011)) %>%
+  #distinct() %>%
+#  rbind(combined_dfs, mutate(race_2016_REGION_pop_rate, year = 2016)) %>%
+#  distinct() %>%
+#  mutate(region_n_year = paste(combined_dfs$region, combined_dfs$year))
+
+library(rworldmap) 
+library(RColorBrewer)
+
+
+
+
+
+
+
 
 
 

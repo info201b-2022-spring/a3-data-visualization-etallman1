@@ -1,0 +1,60 @@
+---
+title: "Incarceration"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("analysis.R")
+library("ggplot2")
+library("tidyr")
+library("dplyr")
+
+avg_sum_year <- combined_dfs %>%    
+  group_by(year) %>%
+  summarise(white = mean(white_prison_pop_rate), non_white = mean(non_white_pop_rate_total))%>%
+  round()
+
+
+gathered <- avg_sum_year %>%
+  gather(
+    key = "race",
+    value = "population_rate",
+    -year
+  )
+
+gathered2 <- combined_dfs %>%
+  group_by(region) %>%
+  summarise(white = mean(white_prison_pop_rate), non_white = mean(non_white_pop_rate_total), all_population = mean(total_prison_pop_rate)) %>%
+  gather(
+    key = "race",
+    value = "population_rate",
+    -region
+  )
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r bar graphs, echo=FALSE}
+ggplot(gathered2, aes(fill=race, y=population_rate, x=region)) +
+  geom_col(position="dodge")
+#ggplot(data = avg_sum, mapping = aes(
+#  x = year, y = white)) +
+#  geom_col() 
+  #geom_line(mapping = aes(y = total_prison_pop_rate))
+  #geom_col(mapping  = aes(y = white_prison_pop_rate))
+  #geom_point(mapping = aes(y = white_prison_pop_rate))
+  #geom_line(mapping = aes(y = white_prison_pop_rate))
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
