@@ -1,39 +1,15 @@
 ---
-title: "Incarceration"
+title: "Incarceration Trends"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, echo=FALSE, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 source("analysis.R")
 library("ggplot2")
 library("tidyr")
 library("dplyr")
 
-
-```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-
-
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r time plot, echo=FALSE}
-ggplot(year_avg_simplified, aes(x = year, y = mean_rate, color = race)) +
-  geom_line()
-```
-
-```{r bar graphs, echo=FALSE}
-ggplot(race_only_region_2018, aes(fill=race, y=mean_rate, x=region)) +
-  geom_col(position="dodge")
-```
-```{r fixing map, echo=FALSE}
 us_map <- map_data("state") %>%
   rename(state = region) %>%
   distinct()
@@ -90,11 +66,46 @@ us_map$state <- str_replace_all(us_map$state, "rhode island", "RI")
 us_map$state <- str_replace_all(us_map$state, "vermont", "VT")
 us_map$state <- str_replace_all(us_map$state, "west VA", "WV")
 
-us_map <- right_join(us_map, state_avg_simplified, by="state")
+us_map <- right_join(us_map, state_avg_simplified, by="state") 
+us_map <- right_join(us_map, state_reg, by="state")
 
 ```
 
-```{r us map, echo=FALSE}
+# Introduction
+
+This report looks to help quantify racism in the United States by examining incarceration data collected from throughout the country. In particular, I focused on average jail population rates by race over time and by region/state. These variables were chosen as there was less missing data here than in some fields, such as the prison population rates. I also believe looking at the *rates* of each race is one of the easiest ways to compare and search for disproportionate numbers. I wanted to see how trends changed over time and where dis-proportionality has been the highest. I choose to look at the years 1998-2018 as there was less missing data in these more recent years and I could then achieve a healthy 20-year spread. I wanted to focus on the rates of White versus Non-White individuals overall, so I combined the data from all Non-White groups into a single category.
+
+## Summary
+
+*(As a note, all rates mentioned are averages).*
+
+I found that `r year_highest_diff` was the year with the highest differences between average White and Non-White jail population rates, (a difference of `r highest_diff`). The average yearly difference in rates was `r mean_diff`. The region with the highest difference in rates in 2018 was the `r region_highest_rate_diff`. The state with the highest Non-White rate over all for 2018 was `r state_highest_rate_overall` (Utah); Its rate was `r highest_rate`, while the average was `r mean_rate`.
+
+# Charts
+
+## Trends over time
+
+```{r time_plot, echo=FALSE}
+ggplot(year_avg_simplified, aes(x = year, y = mean_rate, color = race)) +
+  geom_line() +
+  labs(title = "U.S. Average Jail Popluation Rate Trends (1998-2018)", y = "Population Rate", x = "Year", color = "Race")
+```
+
+Here we can see a comparison of average jail population rates of White versus Non-White individuals over 20 years (with the total population rate average as a control). Clearly there is a huge discrepancy between the White and Non-White groups (and total population), though we are seeing a downward trend for Non-White individuals over the years even as the other two populations slowly rise.
+
+## Rate Comparison by Region
+
+```{r bar graphs, echo=FALSE}
+ggplot(race_only_region_2018, aes(fill=race, y=mean_rate, x=region)) +
+  geom_col(position="dodge") +
+  labs(x = "Region", y = "Population Rate", fill = "Race", title = "Average Jail Population Rates by U.S. Region (2018)", white = "White" ) 
+```
+
+With this chart, we can easily compare White and Non-White average population rates within a region, and the regions with each other. Obviously, the Non-White population rates can be seen to be much higher than the White rates. Some stands-outs includes the West's incredibly high average Non-White rate, and also the Midwest's and Northeast's difference in average Non-White rates while having relatively similar average White rates.
+
+## Non-White Rates Distribution 
+
+```{r us_map_chart, echo=FALSE}
 
 blank_theme <- theme_bw() +
   theme(
@@ -111,15 +122,16 @@ blank_theme <- theme_bw() +
 ggplot(us_map) +
    geom_polygon(
     mapping = aes(x = long, y = lat, group = group, fill = non_white_mean_total),
-    color = "white", 
-    size = .3        
+    size = 1
   ) +
   coord_map() +
     scale_fill_continuous(low = "#132B43", high = "Red") +
-    labs(fill = "Rate", title = "Average Non-White Incarceration Rates by State (2018)") +
+    labs(fill = "Rate", title = "Average Non-White Jail Population Rates by State (2018)") +
     blank_theme
 
 
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Here we can see the distribution of average Non-White population rates across the country by state. The Midwest is looking a little high, which makes sense from our previous chart. The cluster that looks to have high includes Montana and North and South Dakota. The west actually looks relatively low, but then there's Utah with its extremely high average that we touched on earlier. It looks like Utah could be heavily skewing data for the West-- Regardless, it's curious why their average rate is so high.
+
+
